@@ -4,4 +4,4 @@ men jeg tenkte kanskje å lage et monotoring program hvor man kan se tempratur o
 
 dokumentasjon:
 jeg har satt opp flask på python og linka html fil til flask også har jeg css som er koblet til html
-og jeg har synkronisert det i github. så har jeg satt opp en virtuel machine med ubuntu os og for det så brukte jeg hyper-v manager, denne maskinen skar være for mest testing av det jeg lager.
+og jeg har synkronisert det i github. så har jeg satt opp en virtuel machine med ubuntu os og for det så brukte jeg hyper-v manager, denne maskinen skal være for mest testing av det jeg lager.
