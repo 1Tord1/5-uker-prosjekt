@@ -9,6 +9,7 @@
 <div class="container">
     <h1>System Monitor</h1>
 
+    <!-- CPU -->
     <div class="card">
         <div class="label">
             <span>CPU</span>
@@ -19,8 +20,10 @@
                 <span class="inside">{{ data.cpu }}%</span>
             </div>
         </div>
+        <p>CPU Temperatur: <span id="cpu-temp">{{ data.cpu_temp }}</span>°C</p>
     </div>
 
+    <!-- RAM -->
     <div class="card">
         <div class="label">
             <span>RAM</span>
@@ -33,31 +36,46 @@
         </div>
     </div>
 
+    <!-- Disk -->
     <div class="card">
-        <p>CPU Temperatur: <span id="cpu-temp">{{ data.cpu_temp }}</span>°C</p>
+        <div class="label">
+            <span>Disk</span>
+            <span id="disk-percent">{{ data.disk_percent }}%</span>
+        </div>
+        <div class="bar">
+            <div class="fill" id="disk-bar" style="width: {{ data.disk_percent }}%">
+                <span class="inside" id="disk-inside">{{ data.disk_used }} GB / {{ data.disk_total }} GB</span>
+            </div>
+        </div>
+        <p>Read: <span id="read-speed">{{ data.read_speed }}</span> MB/s | Write: <span id="write-speed">{{ data.write_speed }}</span> MB/s</p>
     </div>
+
 </div>
 
 <script>
-// Hent live data hvert sekund
 function updateData() {
     fetch("/api/data")
         .then(response => response.json())
         .then(data => {
-            // Oppdater CPU
+            // CPU
             document.getElementById("cpu-percent").textContent = data.cpu + "%";
             document.getElementById("cpu-bar").style.width = data.cpu + "%";
             document.querySelector("#cpu-bar .inside").textContent = data.cpu + "%";
+            document.getElementById("cpu-temp").textContent = data.cpu_temp;
 
-            // Oppdater RAM
+            // RAM
             document.getElementById("ram-percent").textContent = data.ram_percent + "%";
             document.getElementById("ram-bar").style.width = data.ram_percent + "%";
             document.getElementById("ram-inside").textContent = data.ram_used + " GB / " + data.ram_total + " GB";
 
-            // Oppdater CPU temperatur
-            document.getElementById("cpu-temp").textContent = data.cpu_temp;
+            // Disk
+            document.getElementById("disk-percent").textContent = data.disk_percent + "%";
+            document.getElementById("disk-bar").style.width = data.disk_percent + "%";
+            document.getElementById("disk-inside").textContent = data.disk_used + " GB / " + data.disk_total + " GB";
+            document.getElementById("read-speed").textContent = data.read_speed;
+            document.getElementById("write-speed").textContent = data.write_speed;
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("Error fetching data:", err));
 }
 
 // Oppdater hvert sekund

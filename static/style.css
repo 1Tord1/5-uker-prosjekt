@@ -55,3 +55,14 @@ h1 {
     color: white;
     font-weight: bold;
 }
+
+p {
+    margin-top: 10px;
+    font-size: 13px;
+    color: #cbd5e1;
+}
+
+/* Optional: legg til forskjellig gradient for disk for å skille visuelt */
+#disk-bar {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
