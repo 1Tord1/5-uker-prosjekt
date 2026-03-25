@@ -13,14 +13,17 @@
     <div class="card">
         <div class="label">
             <span>CPU</span>
-            <span id="cpu-percent">{{ data.cpu }}%</span>
+            <span id="cpu-percent">{{ data.cpu_percent }}%</span>
         </div>
         <div class="bar">
-            <div class="fill" id="cpu-bar" style="width: {{ data.cpu }}%">
-                <span class="inside">{{ data.cpu }}%</span>
+            <div class="fill" id="cpu-bar" style="width: {{ data.cpu_percent }}%">
+                <span class="inside">{{ data.cpu_percent }}%</span>
             </div>
         </div>
-        <p>CPU Temperatur: <span id="cpu-temp">{{ data.cpu_temp }}</span>°C</p>
+        <p>Navn: {{ data.cpu_name }}</p>
+        <p>Kjerner: {{ data.cpu_cores }} | Tråder: {{ data.cpu_threads }}</p>
+        <p>Frekvens: <span id="cpu-freq">{{ data.cpu_freq }}</span> GHz</p>
+        <p>Temperatur: <span id="cpu-temp">{{ data.cpu_temp }}</span>°C</p>
     </div>
 
     <!-- RAM -->
@@ -34,6 +37,7 @@
                 <span class="inside" id="ram-inside">{{ data.ram_used }} GB / {{ data.ram_total }} GB</span>
             </div>
         </div>
+        <p>RAM Speed: <span id="ram-speed">{{ data.ram_speed if data.ram_speed else "N/A" }}</span> MHz</p>
     </div>
 
     <!-- Disk -->
@@ -53,32 +57,49 @@
 </div>
 
 <script>
+function getColor(percent) {
+    percent = Number(percent);
+    if (percent < 50) return '#22c55e';
+    if (percent < 80) return '#eab308';
+    return '#ef4444';
+}
+
 function updateData() {
     fetch("/api/data")
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             // CPU
-            document.getElementById("cpu-percent").textContent = data.cpu + "%";
-            document.getElementById("cpu-bar").style.width = data.cpu + "%";
-            document.querySelector("#cpu-bar .inside").textContent = data.cpu + "%";
+            const cpuPercent = Number(data.cpu_percent);
+            const cpuBar = document.getElementById("cpu-bar");
+            cpuBar.style.width = cpuPercent + "%";
+            cpuBar.style.background = getColor(cpuPercent);
+            document.getElementById("cpu-percent").textContent = cpuPercent + "%";
+            cpuBar.querySelector(".inside").textContent = cpuPercent + "%";
+            document.getElementById("cpu-freq").textContent = data.cpu_freq;
             document.getElementById("cpu-temp").textContent = data.cpu_temp;
 
             // RAM
-            document.getElementById("ram-percent").textContent = data.ram_percent + "%";
-            document.getElementById("ram-bar").style.width = data.ram_percent + "%";
-            document.getElementById("ram-inside").textContent = data.ram_used + " GB / " + data.ram_total + " GB";
+            const ramPercent = Number(data.ram_percent);
+            const ramBar = document.getElementById("ram-bar");
+            ramBar.style.width = ramPercent + "%";
+            ramBar.style.background = getColor(ramPercent);
+            document.getElementById("ram-percent").textContent = ramPercent + "%";
+            ramBar.querySelector(".inside").textContent = data.ram_used + " GB / " + data.ram_total + " GB";
+            document.getElementById("ram-speed").textContent = data.ram_speed ? data.ram_speed : "N/A";
 
             // Disk
-            document.getElementById("disk-percent").textContent = data.disk_percent + "%";
-            document.getElementById("disk-bar").style.width = data.disk_percent + "%";
-            document.getElementById("disk-inside").textContent = data.disk_used + " GB / " + data.disk_total + " GB";
+            const diskPercent = Number(data.disk_percent);
+            const diskBar = document.getElementById("disk-bar");
+            diskBar.style.width = diskPercent + "%";
+            diskBar.style.background = getColor(diskPercent);
+            document.getElementById("disk-percent").textContent = diskPercent + "%";
+            diskBar.querySelector(".inside").textContent = data.disk_used + " GB / " + data.disk_total + " GB";
             document.getElementById("read-speed").textContent = data.read_speed;
             document.getElementById("write-speed").textContent = data.write_speed;
         })
-        .catch(err => console.error("Error fetching data:", err));
+        .catch(err => console.error(err));
 }
 
-// Oppdater hvert sekund
 setInterval(updateData, 1000);
 </script>
 

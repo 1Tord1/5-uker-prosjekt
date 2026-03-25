@@ -3,25 +3,48 @@ import psutil
 import platform
 import time
 
+# Windows spesifikk import for RAM-hastighet
+if platform.system() == "Windows":
+    try:
+        import wmi
+    except ImportError:
+        wmi = None
+
 app = Flask(__name__)
 
-# Vi lagrer forrige disk I/O for å regne read/write per sekund
 prev_disk = psutil.disk_io_counters()
 prev_time = time.time()
+
+def get_ram_speed():
+    if platform.system() == "Windows" and wmi:
+        try:
+            c = wmi.WMI()
+            for mem in c.Win32_PhysicalMemory():
+                return int(mem.MaxClockSpeed)
+        except Exception:
+            return None
+    return None
 
 def get_system_data():
     global prev_disk, prev_time
 
     # CPU
-    cpu = psutil.cpu_percent(interval=0.5)
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+    cpu_freq_obj = psutil.cpu_freq()
+    cpu_freq_mhz = cpu_freq_obj.current if cpu_freq_obj else None
+    cpu_freq_ghz = round(cpu_freq_mhz / 1000, 2) if cpu_freq_mhz else None
+    cpu_cores = psutil.cpu_count(logical=False)
+    cpu_threads = psutil.cpu_count(logical=True)
+    cpu_name = platform.processor()
 
     # RAM
     ram = psutil.virtual_memory()
     ram_percent = ram.percent
     ram_used = round(ram.used / (1024**3), 2)
     ram_total = round(ram.total / (1024**3), 2)
+    ram_speed = get_ram_speed()
 
-    # CPU temperatur (Linux / Pi only)
+    # CPU temperatur (Linux)
     cpu_temp = None
     if platform.system() == "Linux":
         temps = psutil.sensors_temperatures()
@@ -31,7 +54,7 @@ def get_system_data():
                     cpu_temp = entry.current
                     break
 
-    # Diskbruk
+    # Disk
     disk = psutil.disk_usage('/')
     disk_percent = disk.percent
     disk_used = round(disk.used / (1024**3), 2)
@@ -41,20 +64,22 @@ def get_system_data():
     current_disk = psutil.disk_io_counters()
     current_time = time.time()
     elapsed = current_time - prev_time
-
-    read_speed = round((current_disk.read_bytes - prev_disk.read_bytes) / (1024**2) / elapsed, 2)  # MB/s
-    write_speed = round((current_disk.write_bytes - prev_disk.write_bytes) / (1024**2) / elapsed, 2)  # MB/s
-
-    # oppdater prev_disk
+    read_speed = round((current_disk.read_bytes - prev_disk.read_bytes) / (1024**2) / elapsed, 2)
+    write_speed = round((current_disk.write_bytes - prev_disk.write_bytes) / (1024**2) / elapsed, 2)
     prev_disk = current_disk
     prev_time = current_time
 
     return {
-        "cpu": cpu,
+        "cpu_percent": cpu_percent,
+        "cpu_freq": cpu_freq_ghz,
+        "cpu_cores": cpu_cores,
+        "cpu_threads": cpu_threads,
+        "cpu_name": cpu_name,
+        "cpu_temp": cpu_temp,
         "ram_percent": ram_percent,
         "ram_used": ram_used,
         "ram_total": ram_total,
-        "cpu_temp": cpu_temp,
+        "ram_speed": ram_speed,
         "disk_percent": disk_percent,
         "disk_used": disk_used,
         "disk_total": disk_total,
