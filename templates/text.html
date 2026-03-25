@@ -1,13 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Document</title>
 </head>
 <body>
-    <h1>hei</h1>
-    
+
+<div class="container">
+    <h1>System Monitor</h1>
+
+    <div class="card">
+        <div class="label">
+            <span>CPU</span>
+            <span id="cpu-percent">{{ data.cpu }}%</span>
+        </div>
+        <div class="bar">
+            <div class="fill" id="cpu-bar" style="width: {{ data.cpu }}%">
+                <span class="inside">{{ data.cpu }}%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label">
+            <span>RAM</span>
+            <span id="ram-percent">{{ data.ram_percent }}%</span>
+        </div>
+        <div class="bar">
+            <div class="fill" id="ram-bar" style="width: {{ data.ram_percent }}%">
+                <span class="inside" id="ram-inside">{{ data.ram_used }} GB / {{ data.ram_total }} GB</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <p>CPU Temperatur: <span id="cpu-temp">{{ data.cpu_temp }}</span>°C</p>
+    </div>
+</div>
+
+<script>
+// Hent live data hvert sekund
+function updateData() {
+    fetch("/api/data")
+        .then(response => response.json())
+        .then(data => {
+            // Oppdater CPU
+            document.getElementById("cpu-percent").textContent = data.cpu + "%";
+            document.getElementById("cpu-bar").style.width = data.cpu + "%";
+            document.querySelector("#cpu-bar .inside").textContent = data.cpu + "%";
+
+            // Oppdater RAM
+            document.getElementById("ram-percent").textContent = data.ram_percent + "%";
+            document.getElementById("ram-bar").style.width = data.ram_percent + "%";
+            document.getElementById("ram-inside").textContent = data.ram_used + " GB / " + data.ram_total + " GB";
+
+            // Oppdater CPU temperatur
+            document.getElementById("cpu-temp").textContent = data.cpu_temp;
+        })
+        .catch(err => console.error(err));
+}
+
+// Oppdater hvert sekund
+setInterval(updateData, 1000);
+</script>
+
 </body>
 </html>
