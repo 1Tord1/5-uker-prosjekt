@@ -3,7 +3,7 @@ import psutil
 import platform
 import time
 
-# Windows spesifikk import for RAM-hastighet
+# import for RAM-hastighet
 if platform.system() == "Windows":
     try:
         import wmi
